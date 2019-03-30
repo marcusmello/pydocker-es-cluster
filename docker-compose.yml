@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  es_db:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.1
+    restart: unless-stopped
+    ports:
+      - 9200:9200
+      - 9300:9300
+    container_name: es_db
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+  worker:
+    depends_on:
+      - es_db
+    build:
+      context: .
+      dockerfile: ./worker/Dockerfile
+    container_name: "worker"
+    extra_hosts:
+    - "dockerhost:$DOCKERHOST"
+    environment:
+      - PYTHONUNBUFFERED=0 #for print stdout
+
+volumes:
+  esdata:
+    driver: local
